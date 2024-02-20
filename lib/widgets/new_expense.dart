@@ -152,138 +152,245 @@ class _NewExpenseState extends State<NewExpense> {
   Widget build(BuildContext context) {
     // stores how much space is taken up by the keyboard from the bottom (in the landscape mode, some elements of modal bottom sheet is hidden behind the keyboard)
     final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
-    // You need padding around text fields
-    // Wrap Padding() with SingleChildScrollView so a single widget can be scrolled
-    return SizedBox(
-      // Without this, modal bottom sheet does not go up to the top. double.infinity takes all the space avaialble as long as the parent allows
-      height: double.infinity,
-      child: SingleChildScrollView(
-        child: Padding(
-          // padding: const EdgeInsets.all(16),
-          // In order not to get some elements hidden behind the keyboard, adjust the padding
-          padding: EdgeInsets.fromLTRB(16, 48, 16, keyboardSpace + 16),
-          child: Column(
-            children: [
-              TextField(
-                // onChanged allows us to register a function that will be triggered when the value in the TextField changes
-                // onChnaged parameter wants a function that will receive a String value and
-                // that String value will be the value entered into the TextField
-                controller: _titleController,
-
-                maxLength: 50,
-                decoration: const InputDecoration(
-                  hintText: 'Enter title',
-                  label: Text('Title'),
-                ),
-              ),
-              Row(
+    // constraints.maxHeight, constraints.minHeight, constraints.maxWidth, constraints.minWidth are used for you to grasp available space
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        return SizedBox(
+          // Without this, modal bottom sheet does not go up to the top. double.infinity takes all the space avaialble as long as the parent allows
+          height: double.infinity,
+          child: SingleChildScrollView(
+            // You need padding around text fields
+            child: Padding(
+              // padding: const EdgeInsets.all(16),
+              // In order not to get some elements hidden behind the keyboard, adjust the padding
+              padding: EdgeInsets.fromLTRB(16, 48, 16, keyboardSpace + 16),
+              child: Column(
                 children: [
-                  // To use Expanded inside below, you need to wrap TextField with Expanded
-                  // by doing this, TextField takes all remaining spaces between the following widget
-                  Expanded(
-                    child: TextField(
-                      controller: _amountController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter amount',
-                        prefixText: '\$ ',
-                        label: Text('Amount'),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  // Using Row inside Row causes a problem so use Expanded
-                  // because Expanded takes all space between widgets
-                  Expanded(
-                      child: Row(
-                    // mainAxisAlignment: MainAxisAlignment.end places children widgets at the end
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        // format method wants DateTime, not optional Datetime]
-                        // So, force Dart to make the variable null using ! mark that means it cannot be null
-                        // It cannot be null because the condition (_selectedDate == null) is set
-                        _selectedDate == null
-                            ? 'No date selected'
-                            : formatter.format(_selectedDate!),
-                      ),
-                      IconButton(
-                        onPressed: _presentDatePicker,
-                        icon: const Icon(
-                          Icons.calendar_month,
-                        ),
-                      ),
-                    ],
-                  ))
-                ],
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Row(
-                children: [
-                  // .values propety gives you all values in the enum
-                  // item parameter wants a List but Category is enum so you need to convert
-                  // map wants a function that will be executed automatically by Dart for every list item
-                  // the input value passed by Dart is category that shows every item in the enum
-                  // You want to return DropdownMenuItem
-                  // child paramter wants a Widget that will be shown on the screen
-                  // .map is Iterable so you need to convert it to List which item parameter wants
-
-                  DropdownButton(
-                    // By adding value parameter, the dropdown shows the value selected, not just empty one
-                    value: _selectedCategory,
-                    items: Category.values
-                        .map(
-                          (category) => DropdownMenuItem(
-                            // value parameter is needed for storing the value the user selected
-                            // this value is passed to onChanged
-                            // By doing this, the enum category value is mapped to Dropdownlist item
-                            value: category,
-                            child: Text(
-                              // name property gets the name of enum
-                              category.name.toUpperCase(),
+                  // if width is greater than or equal to 600, two TextFields are aligned in Row
+                  if (width >= 600)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _titleController,
+                            maxLength: 50,
+                            decoration: const InputDecoration(
+                              hintText: 'Enter title',
+                              label: Text('Title'),
                             ),
                           ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        // the user might select anything in DropDown
-                        // so by adding if statement beforehand, _selectedCategory = value; can be executed only when value is not null
-                        if (value == null) {
-                          return;
-                        }
-                        // This stores selected category and updates the state whenever it changes
-                        _selectedCategory = value;
-                      });
-                    },
+                        ),
+                        const SizedBox(
+                          width: 24,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _amountController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              hintText: 'Enter amount',
+                              prefixText: '\$ ',
+                              label: Text('Amount'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    TextField(
+                      // onChanged allows us to register a function that will be triggered when the value in the TextField changes
+                      // onChnaged parameter wants a function that will receive a String value and
+                      // that String value will be the value entered into the TextField
+                      controller: _titleController,
+
+                      maxLength: 50,
+                      decoration: const InputDecoration(
+                        hintText: 'Enter title',
+                        label: Text('Title'),
+                      ),
+                    ),
+                  if (width >= 600)
+                    Row(
+                      children: [
+                        DropdownButton(
+                          value: _selectedCategory,
+                          items: Category.values
+                              .map(
+                                (category) => DropdownMenuItem(
+                                  value: category,
+                                  child: Text(
+                                    category.name.toUpperCase(),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              if (value == null) {
+                                return;
+                              }
+                              _selectedCategory = value;
+                            });
+                          },
+                        ),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                _selectedDate == null
+                                    ? 'No date selected'
+                                    : formatter.format(_selectedDate!),
+                              ),
+                              IconButton(
+                                onPressed: _presentDatePicker,
+                                icon: const Icon(
+                                  Icons.calendar_month,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: [
+                        // To use Expanded inside below, you need to wrap TextField with Expanded
+                        // by doing this, TextField takes all remaining spaces between the following widget
+                        Expanded(
+                          child: TextField(
+                            controller: _amountController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              hintText: 'Enter amount',
+                              prefixText: '\$ ',
+                              label: Text('Amount'),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 16,
+                        ),
+                        // Using Row inside Row causes a problem so use Expanded
+                        // because Expanded takes all space between widgets
+                        Expanded(
+                          child: Row(
+                            // mainAxisAlignment: MainAxisAlignment.end places children widgets at the end
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                // format method wants DateTime, not optional Datetime]
+                                // So, force Dart to make the variable null using ! mark that means it cannot be null
+                                // It cannot be null because the condition (_selectedDate == null) is set
+                                _selectedDate == null
+                                    ? 'No date selected'
+                                    : formatter.format(_selectedDate!),
+                              ),
+                              IconButton(
+                                onPressed: _presentDatePicker,
+                                icon: const Icon(
+                                  Icons.calendar_month,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(
+                    height: 16,
                   ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () {
-                      // Navigator class
-                      // pop method wants the current context as an argument
-                      // the context value is in this build method (i.e., Widget build(BuildContext context) {)
-                      // So this is passed by Flutter and and we have to kind of forward it to the pop method.
-                      // And pop simply removes this overlay from the screen.
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: _submitExpenseData,
-                    child: const Text('Save Expense'),
-                  )
+                  if (width >= 600)
+                    Row(
+                      children: [
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () {
+                            // Navigator class
+                            // pop method wants the current context as an argument
+                            // the context value is in this build method (i.e., Widget build(BuildContext context) {)
+                            // So this is passed by Flutter and and we have to kind of forward it to the pop method.
+                            // And pop simply removes this overlay from the screen.
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _submitExpenseData,
+                          child: const Text('Save Expense'),
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: [
+                        // .values propety gives you all values in the enum
+                        // item parameter wants a List but Category is enum so you need to convert
+                        // map wants a function that will be executed automatically by Dart for every list item
+                        // the input value passed by Dart is category that shows every item in the enum
+                        // You want to return DropdownMenuItem
+                        // child paramter wants a Widget that will be shown on the screen
+                        // .map is Iterable so you need to convert it to List which item parameter wants
+                        DropdownButton(
+                          // By adding value parameter, the dropdown shows the value selected, not just empty one
+                          value: _selectedCategory,
+                          items: Category.values
+                              .map(
+                                (category) => DropdownMenuItem(
+                                  // value parameter is needed for storing the value the user selected
+                                  // this value is passed to onChanged
+                                  // By doing this, the enum category value is mapped to Dropdownlist item
+                                  value: category,
+                                  child: Text(
+                                    // name property gets the name of enum
+                                    category.name.toUpperCase(),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              // the user might select anything in DropDown
+                              // so by adding if statement beforehand, _selectedCategory = value; can be executed only when value is not null
+                              if (value == null) {
+                                return;
+                              }
+                              // This stores selected category and updates the state whenever it changes
+                              _selectedCategory = value;
+                            });
+                          },
+                        ),
+                        const Spacer(),
+
+                        TextButton(
+                          onPressed: () {
+                            // Navigator class
+                            // pop method wants the current context as an argument
+                            // the context value is in this build method (i.e., Widget build(BuildContext context) {)
+                            // So this is passed by Flutter and and we have to kind of forward it to the pop method.
+                            // And pop simply removes this overlay from the screen.
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _submitExpenseData,
+                          child: const Text('Save Expense'),
+                        ),
+                      ],
+                    ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
+    // Wrap Padding() with SingleChildScrollView so a single widget can be scrolled
   }
 }
